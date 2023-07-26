@@ -1,9 +1,9 @@
 from sqlalchemy import func, desc
 from sqlalchemy.orm import aliased
 
+from app_router.models.data_models import DealerProductList, ProductList
 from app_router.models.database import db
-from app_router.models.models import PurchaseOrder, PurchaseOrderList, OutboundOrder, OutboundOrderList, \
-    DealerProductList, ProductList
+from app_router.models.order_models import PurchaseOrder, PurchaseOrderList, OutboundOrder, OutboundOrderList
 from app_router.order_display_bp.order_lib import format_purchase_product, format_outbound_product
 from exceptions.order_exception import *
 

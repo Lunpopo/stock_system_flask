@@ -1,15 +1,12 @@
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import aliased
 
+from app_router.models.data_models import ProductList, DealerProductList, DealerList
 from app_router.models.database import db
-from app_router.models.models import ProductList, DealerProductList, DealerList
 from enums.enums import OrderNameEnum
-
-
-# 别名
 from exceptions.product_exception import *
 
-A = aliased(DealerProductList)
+A = aliased(DealerProductList)  # 别名
 B = aliased(ProductList)
 
 

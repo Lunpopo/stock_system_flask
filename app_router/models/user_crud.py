@@ -5,7 +5,7 @@ from sqlalchemy import desc, asc, or_
 from sqlalchemy.orm import aliased
 
 from app_router.models.database import db
-from app_router.models.models import AuthUser, AuthGroup, AuthApi, AuthFunction
+from app_router.models.base_models import AuthUser, AuthGroup, AuthApi, AuthFunction
 from enums.enums import MenuEnum, MenuHiddenEnum
 from exceptions.user_exception import *
 from utils.authentication import pwd_context
@@ -503,6 +503,12 @@ def delete_menu_by_id(business_id):
     :return:
     """
     try:
+        # 如果要删除的是一级菜单，那要把下面的所有的菜单全部删除
+        auth_api_obj = AuthApi.query.filter_by(business_id=business_id).first()
+        if auth_api_obj.menu_type == 0:
+            # 一级菜单
+            AuthApi.query.filter_by(api_parent_id=auth_api_obj.business_id).delete()
+            db.session.commit()
         AuthApi.query.filter_by(business_id=business_id).delete()
         db.session.commit()
     except:

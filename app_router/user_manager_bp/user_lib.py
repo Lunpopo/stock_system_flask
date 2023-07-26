@@ -1,6 +1,6 @@
 import requests
 
-from app_router.models.models import AuthUser, AuthApi
+from app_router.models.base_models import AuthUser, AuthApi
 from utils.authentication import verify_password
 
 

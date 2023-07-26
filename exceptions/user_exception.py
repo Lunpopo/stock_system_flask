@@ -15,6 +15,17 @@ class AddUserException(Exception):
         return self.msg
 
 
+class UpdateUserException(Exception):
+    """
+    更新用户自定义异常
+    """
+    def __init__(self, msg=update_user_failed):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
 class DeleteUserException(Exception):
     """
     删除用户自定义异常
@@ -81,6 +92,17 @@ class AddRoleAndRouteException(Exception):
         return self.msg
 
 
+class AddApiException(Exception):
+    """
+    新增功能（api）异常
+    """
+    def __init__(self, msg=add_api_failed):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
 class AddMenuException(Exception):
     """
     新增菜单（api）异常
@@ -103,11 +125,33 @@ class UpdateMenuException(Exception):
         return self.msg
 
 
+class UpdateApiException(Exception):
+    """
+    更新功能（api）异常
+    """
+    def __init__(self, msg=update_api_failed):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
 class DeleteMenuException(Exception):
     """
     删除菜单（api）异常
     """
     def __init__(self, msg=delete_menu_failed):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
+class DeleteApiException(Exception):
+    """
+    删除功能（api）异常
+    """
+    def __init__(self, msg=delete_api_failed):
         self.msg = msg
 
     def __str__(self):

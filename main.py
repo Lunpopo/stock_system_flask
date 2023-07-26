@@ -1,18 +1,17 @@
 """
-flask启动文件-调试用
+flask启动文件
 """
 from flask_migrate import MigrateCommand
 from flask_script import Manager
 
 from app_router import create_app
-from app_router.models.database import db
+# from app_router.models.database import db
 
-app = create_app()
+app, db = create_app()
 
 if __name__ == '__main__':
     manager = Manager(app, db)
     manager.add_command("db", MigrateCommand)
-
     # python main.py runserver --host=0.0.0.0
     manager.run()
 
@@ -32,4 +31,4 @@ if __name__ == '__main__':
 # if __name__ == '__main__':
 #     # 不能用自带的服务器
 #     from gevent.pywsgi import WSGIServer
-#     WSGIServer(("0.0.0.0", 6000), app).serve_forever()
+#     WSGIServer(("0.0.0.0", 5000), app).serve_forever()

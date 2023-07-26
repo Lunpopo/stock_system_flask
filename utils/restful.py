@@ -11,6 +11,7 @@ from flask import Response, json
 class HttpCode(object):
     ok = 200
     paramserror = 400
+    # 无权限访问页面（或者功能）
     unauth = 401
     methoderror = 405
     servererror = 500
@@ -18,6 +19,8 @@ class HttpCode(object):
     token_expired = 50014
     # 非法登录
     illegal_token = 50008
+    # 拒绝访问
+    forbidden = 403
 
 
 def result(status=HttpCode.ok, code=20000, message="", data=None, succ=True, kwargs=None):
@@ -37,29 +40,29 @@ def ok(message='', data=None):
 
 # 参数错误
 def params_error(message="", data=None):
-    return result(code=HttpCode.paramserror, message=message, data=data, succ=False)
+    return result(status=HttpCode.paramserror, code=HttpCode.paramserror, message=message, data=data, succ=False)
 
 
 # 未授权错误
-def unauth(message="", data=None):
-    return result(code=HttpCode.unauth, message=message, data=data, succ=False)
+def unauth(message="您没有权限访问此功能", data=None):
+    return result(status=HttpCode.unauth, code=HttpCode.unauth, message=message, data=data, succ=False)
 
 
 # 方法错误
 def method_error(message="", data=None):
-    return result(code=HttpCode.methoderror, message=message, data=data, succ=False)
+    return result(status=HttpCode.methoderror, code=HttpCode.methoderror, message=message, data=data, succ=False)
 
 
 # 服务器错误
 def server_error(message="", data=None):
-    return result(code=HttpCode.servererror, message=message, data=data, succ=False)
+    return result(status=HttpCode.servererror, code=HttpCode.servererror, message=message, data=data, succ=False)
 
 
 # token过期
-def token_expired(message="", data=None):
+def token_expired(message="您的登录信息已过期！", data=None):
     return result(code=HttpCode.token_expired, message=message, data=data, succ=False)
 
 
 # 非法token
-def illegal_token(message="", data=None):
-    return result(code=HttpCode.illegal_token, message=message, data=data, succ=False)
+def illegal_token(message="非法登录！", data=None):
+    return result(status=HttpCode.forbidden, code=HttpCode.illegal_token, message=message, data=data, succ=False)

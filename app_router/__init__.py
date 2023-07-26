@@ -4,10 +4,12 @@ flask初始化
 from flask import Flask
 from flask_cors import CORS
 
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 from app_router.data_display_bp.data_display import data_bp
 from app_router.models import user_crud
-from app_router.models.database import db
-from app_router.models.models import DealerList
+# from app_router.models.database import db
+from app_router.models.data_models import DealerList
 from app_router.order_display_bp.outbound_order import outbound_order_bp
 from app_router.order_display_bp.purchase_order import purchase_order_bp
 from app_router.order_display_bp.order_statistics import order_statistics_bp
@@ -78,5 +80,7 @@ def create_app():
     app.register_blueprint(order_statistics_bp)
     app.register_blueprint(purchase_order_bp)
     app.register_blueprint(outbound_order_bp)
+    db = SQLAlchemy(app=app)
     db.init_app(app=app)
-    return app
+    # migrate = Migrate()
+    return app, db

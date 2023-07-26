@@ -1,5 +1,27 @@
 from enum import Enum
 
+from utils import restful
+
+
+class AuthStatusEnum(Enum):
+    """
+    登录状态检查枚举
+    """
+    ok = 'ok'
+    unauth = 'unauth'
+    expire = 'expire'
+    illegal_token = 'illegal_token'
+
+
+class AuthCheckEnum(Enum):
+    """
+    登录状态检查枚举
+    """
+    unauth = restful.unauth()
+    expire = restful.token_expired()
+    illegal_token = restful.illegal_token()
+    ok = True
+
 
 class ProductScentEnum(Enum):
     """
