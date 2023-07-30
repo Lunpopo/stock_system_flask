@@ -8,7 +8,8 @@ from app_router.models.base_models import StockList, TransactionList
 from app_router.models.data_models import DealerProductList, ProductList
 from app_router.models.database import db
 from app_router.models.order_models import PurchaseOrder, PurchaseOrderList, OutboundOrder, OutboundOrderList
-from app_router.order_display_bp.order_lib import format_purchase_product, format_outbound_product
+from app_router.order_display_bp.order_lib import format_purchase_product, format_outbound_product, \
+    format_stock_transaction_list
 from exceptions.order_exception import *
 
 
@@ -484,6 +485,46 @@ def get_stock_list_limit(page: int = 0, limit: int = 100):
     return {"data": result_list, "count": StockList.query.count()}
 
 
+def update_stock_transaction_list(stock_dict, transaction_dict_list):
+    try:
+        stock_id = stock_dict['business_id']
+        with db.session.begin_nested():
+            # 1. 根据业务id查询这条数据
+            stock_obj = StockList.query.filter_by(business_id=stock_id).first()
+            if stock_obj:
+                # 执行更新操作
+                StockList.query.filter(StockList.business_id == stock_id).update(stock_dict)
+                db.session.flush()
+            else:
+                raise UpdateStockListException
+
+            # 2. 删除该股票的所有的交易信息
+            TransactionList.query.filter(TransactionList.stock_id == stock_id).delete()
+            db.session.flush()
+
+            # 3. 添加最新的交易列表
+            for _ in transaction_dict_list:
+                _['stock_id'] = stock_id
+                # 将 create_time 改为时间戳
+                create_time = int(int(_['create_time']) / 1000)
+                create_time_array = time.localtime(create_time)
+                create_time = time.strftime("%Y-%m-%d %H:%M:%S", create_time_array)
+                _['create_time'] = create_time
+                # 将 update_time 改为时间戳
+                update_time = int(int(_['update_time']) / 1000)
+                update_time_array = time.localtime(update_time)
+                update_time = time.strftime("%Y-%m-%d %H:%M:%S", update_time_array)
+                _['update_time'] = update_time
+
+            transaction_obj_list = [TransactionList(**_) for _ in transaction_dict_list]
+            db.session.add_all(transaction_obj_list)
+            db.session.flush()
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise UpdateStockTransactionException
+
+
 def add_stock_list(stock_list_data: dict, stock_transaction_list_data: dict):
     """
     新增股票列表
@@ -513,21 +554,16 @@ def add_stock_list(stock_list_data: dict, stock_transaction_list_data: dict):
         raise AddStockListException
 
 
-# def add_purchase_order(data: dict):
-#     """
-#     新增订货单
-#     :param data: 数据字典
-#     :return:
-#     """
-#     try:
-#         purchase_order_obj = PurchaseOrder(**data)
-#         db.session.add(purchase_order_obj)
-#         db.session.commit()
-#         # db.session.flush()
-#         return purchase_order_obj
-#     except:
-#         db.session.rollback()
-#         raise AddStockListException
+def get_stock_info_by_id(data_id):
+    """
+    通过stock id 获取股票信息
+    :param data_id: 入库单id
+    :return:
+    """
+    # 该 股票id 的所有交易列表
+    transaction_obj_list = TransactionList.query.filter_by(stock_id=data_id).order_by(TransactionList.update_time.asc()).all()
+    stock_obj = StockList.query.filter_by(business_id=data_id).first()
+    return {"transaction_obj_list": transaction_obj_list, "stock_obj": stock_obj}
 
 
 def get_products_by_purchase_order_id(data_id):
@@ -550,7 +586,7 @@ def get_transaction_by_stock_id(data_id):
     :param data_id: stock id
     :return:
     """
-    result_list = TransactionList.query.filter_by(stock_id=data_id).all()
+    result_list = TransactionList.query.filter_by(stock_id=data_id).order_by(TransactionList.update_time.asc()).all()
     return {"data": result_list, "count": TransactionList.query.filter_by(stock_id=data_id).count()}
 
 
@@ -575,6 +611,21 @@ def del_purchase_order_by_id(data_id):
     except:
         db.session.rollback()
         raise DeletePurchaseException
+
+
+def del_transaction_by_id(data_id):
+    """
+    通过 stock id 删除该股票的所有交易列表
+    :param data_id: 订单id
+    :return:
+    """
+    # 删除所有的入库产品
+    try:
+        TransactionList.query.filter(TransactionList.stock_id == data_id).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise DeleteTransactionException
 
 
 def del_purchase_product_by_id(data_id):
@@ -667,25 +718,25 @@ def update_outbound_by_business_id(data_id: str, data):
         raise UpdateOutboundException
 
 
-def update_purchase_by_business_id(data_id: str, data):
+def update_stock_list_by_id(data_id: str, data):
     """
-    根据 业务id 更新入库单
+    根据 业务id 更新 stock_list 表
     :param data_id:
     :param data:
     :return:
     """
     try:
         # 根据业务id查询这条数据
-        purchase_order_obj = PurchaseOrder.query.filter_by(business_id=data_id).first()
-        if purchase_order_obj:
+        stock_obj = StockList.query.filter_by(business_id=data_id).first()
+        if stock_obj:
             # 执行更新操作
-            PurchaseOrder.query.filter(PurchaseOrder.business_id == data_id).update(data)
+            StockList.query.filter(StockList.business_id == data_id).update(data)
             db.session.commit()
         else:
-            raise UpdatePurchaseException
+            raise UpdateStockListException
     except:
         db.session.rollback()
-        raise UpdatePurchaseException
+        raise UpdateStockListException
 
 
 def get_products_by_outbound_order_id(data_id):

@@ -7,8 +7,8 @@ def time_to_timestamp(data_list):
     if data_list:
         for _ in data_list:
             # 转换没有指定时区
-            _['create_time'] = int(_.get('create_time').timestamp())
-            _['update_time'] = int(_.get('update_time').timestamp())
+            _['create_time'] = int(_.get('create_time').timestamp()) * 1000
+            _['update_time'] = int(_.get('update_time').timestamp()) * 1000
         return data_list
     else:
         return []

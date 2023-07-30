@@ -16,6 +16,18 @@ class AddStockListException(Exception):
         return self.msg
 
 
+class UpdateStockTransactionException(Exception):
+    """
+    更新股票和股票交易信息列表出错
+    """
+
+    def __init__(self, msg=update_stock_transaction_failed):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
 class AddOutboundException(Exception):
     """
     新增出库单自定义异常
@@ -52,6 +64,18 @@ class UpdatePurchaseException(Exception):
         return self.msg
 
 
+class UpdateStockListException(Exception):
+    """
+    更新 股票列表 自定义异常
+    """
+
+    def __init__(self, msg=update_purchase_order_failed):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
 class DeletePurchaseException(Exception):
     """
     删除入库单自定义异常
@@ -70,6 +94,18 @@ class DeleteOutboundException(Exception):
     """
 
     def __init__(self, msg=del_outbound_order_failed):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
+class DeleteTransactionException(Exception):
+    """
+    删除股票交易列表自定义异常
+    """
+
+    def __init__(self, msg=del_transaction_failed):
         self.msg = msg
 
     def __str__(self):

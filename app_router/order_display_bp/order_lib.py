@@ -1,6 +1,31 @@
 from utils.date_utils import time_to_timestamp
 
 
+def format_stock_transaction_list(data_list):
+    """
+    处理股票和交易信息的方法，将返回的 tuple 结果进行格式化json
+    :param data_list: 接收搜索返回的数据（tuple类型，第一列是 TransactionList 数据类型，第二列是 StockList 数据类型）
+    :return:
+    """
+    return_data_list = []
+    for transaction_obj, stock_obj in data_list:
+        # json格式化
+        transaction_list_dict = transaction_obj.as_dict()
+        # 添加几个列名
+        transaction_list_dict['stock_name'] = stock_obj.stock_name
+        transaction_list_dict['stock_code'] = stock_obj.stock_code
+        transaction_list_dict['remarks'] = stock_obj.remarks
+        # transaction_list_dict['scent_type'] = stock_obj.scent_type
+        # transaction_list_dict['specification_of_piece'] = stock_obj.specification_of_piece
+        # transaction_list_dict['unit_price'] = stock_obj.unit_price
+        # transaction_list_dict['img_url'] = stock_obj.img_url
+        # transaction_list_dict['thumb_img_url'] = stock_obj.thumb_img_url
+        return_data_list.append(transaction_list_dict)
+
+    # 统一转换成时间戳的形式
+    return time_to_timestamp(return_data_list)
+
+
 def format_purchase_product(data_list):
     """
     处理入库产品数据的方法，将返回的 tuple 结果进行格式化json

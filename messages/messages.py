@@ -27,6 +27,8 @@ get_scent_type_failed = "查询香型列表失败！"
 
 # [order]
 add_purchase_order_success = "新增入库单成功！"
+update_stock_transaction_success = "更新股票和股票交易信息成功！"
+update_stock_transaction_failed = "更新股票和股票交易信息失败！"
 add_purchase_order_failed = "新增入库单失败！"
 
 add_stock_list_failed = "新增股票交易信息列表失败！"
@@ -40,10 +42,13 @@ add_outbound_order_product_success = "新增出库单产品成功！"
 add_outbound_order_product_failed = "新增出库单产品失败！"
 update_outbound_order_failed = "更新出库单异常！"
 update_purchase_order_failed = "更新入库单异常！"
+update_stock_list_failed = "更新股票列表异常！"
 
 del_purchase_product_list_order_failed = "删除入库单所有的产品失败！"
+del_transaction_failed = "删除股票交易列表失败！"
 del_outbound_product_list_order_failed = "删除出库单所有的产品失败！"
-add_purchase_order_not_zero = "新增入库单产品数量不能为0！"
+add_stock_list_not_zero = "新增股票交易列表数量不能为0！"
+# add_purchase_order_not_zero = "新增入库单产品数量不能为0！"
 update_purchase_order_not_zero = "更新入库单产品数量不能为0！"
 
 add_outbound_order_success = "新增出库单成功！"

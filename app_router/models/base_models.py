@@ -249,10 +249,10 @@ class TransactionList(db.Model):
     sell_gear_two = db.Column(db.Float, nullable=False, comment="卖出档位2（20%）")
     markup_price = db.Column(db.Float, nullable=False, comment="加仓价格")
     heavy_price = db.Column(db.Float, nullable=False, comment="重仓价格")
-    transaction_time = db.Column(
-        db.TIMESTAMP, nullable=False, server_default=db.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
-        comment="交易时间"
-    )
+    # transaction_time = db.Column(
+    #     db.TIMESTAMP, nullable=False, server_default=db.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
+    #     comment="交易时间"
+    # )
     remarks = db.Column(db.Text, nullable=True, comment="备注")
 
     # 公共字段

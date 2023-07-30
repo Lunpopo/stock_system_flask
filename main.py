@@ -5,7 +5,6 @@ from flask_migrate import MigrateCommand
 from flask_script import Manager
 
 from app_router import create_app
-# from app_router.models.database import db
 
 app, db = create_app()
 
