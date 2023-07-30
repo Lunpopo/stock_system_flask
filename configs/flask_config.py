@@ -4,6 +4,8 @@ Flask 的启动配置文件
 # 基础设置
 # --------snip--------
 # 跟踪数据库的修改---->不建议开启，未来的版本中会移除
+from urllib.parse import quote
+
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 # 显示 sql 语句，调试阶段为True
 SQLALCHEMY_ECHO = False
@@ -27,6 +29,8 @@ SECRET_KEY = 'EjpNVSNQTyGi1VvWECj9TvC/+kq3oujee2kTfQUs8yCM6xX9Yjq52v54g+HVoknA'
 # 数据库配置
 # --------snip--------
 # 配置数据库的地址
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:11111111@127.0.0.1/stock_system_db'
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{}:{}@{}:{}/stock_system_db'.format(
+    "root", quote("1234"), "162.14.83.226", '3306'
+)
 # --------snip--------
 

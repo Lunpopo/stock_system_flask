@@ -293,7 +293,8 @@ def get_all_dealer_product_data():
     :return:
     """
     try:
-        auth_status = auth_check(user_token=request.headers.get('Authorization'), api='data/get_all_dealer_product_data')
+        auth_status = auth_check(user_token=request.headers.get('Authorization'),
+                                 api='data/get_all_dealer_product_data')
         if AuthCheckEnum[auth_status].value is not True:
             return AuthCheckEnum[auth_status].value
 
