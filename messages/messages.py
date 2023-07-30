@@ -28,6 +28,9 @@ get_scent_type_failed = "查询香型列表失败！"
 # [order]
 add_purchase_order_success = "新增入库单成功！"
 add_purchase_order_failed = "新增入库单失败！"
+
+add_stock_list_failed = "新增股票交易信息列表失败！"
+
 del_purchase_order_success = "删除入库单成功！"
 del_purchase_order_failed = "删除入库单失败！"
 add_purchase_order_product_success = "新增入库单产品成功！"

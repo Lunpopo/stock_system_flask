@@ -4,12 +4,12 @@
 from messages.messages import *
 
 
-class AddPurchaseException(Exception):
+class AddStockListException(Exception):
     """
-    新增入库单自定义异常
+    新增股票交易信息列表出错
     """
 
-    def __init__(self, msg=add_purchase_order_failed):
+    def __init__(self, msg=add_stock_list_failed):
         self.msg = msg
 
     def __str__(self):

@@ -1,6 +1,10 @@
+import time
+import traceback
+
 from sqlalchemy import func, desc
 from sqlalchemy.orm import aliased
 
+from app_router.models.base_models import StockList, TransactionList
 from app_router.models.data_models import DealerProductList, ProductList
 from app_router.models.database import db
 from app_router.models.order_models import PurchaseOrder, PurchaseOrderList, OutboundOrder, OutboundOrderList
@@ -469,21 +473,61 @@ def get_purchase_order_limit(page: int = 0, limit: int = 100):
     return {"data": result_list, "count": PurchaseOrder.query.count()}
 
 
-def add_purchase_order(data: dict):
+def get_stock_list_limit(page: int = 0, limit: int = 100):
     """
-    新增订货单
-    :param data: 数据字典
+    获取股票统计信息列表
+    :param page: 当前页
+    :param limit: 每页多少条数据
+    :return:
+    """
+    result_list = StockList.query.order_by(StockList.create_time.desc()).offset(page).limit(limit).all()
+    return {"data": result_list, "count": StockList.query.count()}
+
+
+def add_stock_list(stock_list_data: dict, stock_transaction_list_data: dict):
+    """
+    新增股票列表
+    :param stock_list_data:
+    :param stock_transaction_list_data:
     :return:
     """
     try:
-        purchase_order_obj = PurchaseOrder(**data)
-        db.session.add(purchase_order_obj)
+        with db.session.begin_nested():
+            stock_list_obj = StockList(**stock_list_data)
+            db.session.add(stock_list_obj)
+            db.session.flush()
+            stock_id = stock_list_obj.business_id
+            for _ in stock_transaction_list_data:
+                update_time = int(int(_['update_time']) / 1000)
+                update_time_array = time.localtime(update_time)
+                update_time = time.strftime("%Y-%m-%d %H:%M:%S", update_time_array)
+                _['update_time'] = update_time
+                _['stock_id'] = stock_id
+
+            stock_transaction_objs = [TransactionList(**_) for _ in stock_transaction_list_data]
+            db.session.add_all(stock_transaction_objs)
+            db.session.flush()
         db.session.commit()
-        # db.session.flush()
-        return purchase_order_obj
     except:
         db.session.rollback()
-        raise AddPurchaseException
+        raise AddStockListException
+
+
+# def add_purchase_order(data: dict):
+#     """
+#     新增订货单
+#     :param data: 数据字典
+#     :return:
+#     """
+#     try:
+#         purchase_order_obj = PurchaseOrder(**data)
+#         db.session.add(purchase_order_obj)
+#         db.session.commit()
+#         # db.session.flush()
+#         return purchase_order_obj
+#     except:
+#         db.session.rollback()
+#         raise AddStockListException
 
 
 def get_products_by_purchase_order_id(data_id):
@@ -498,6 +542,16 @@ def get_products_by_purchase_order_id(data_id):
         A.purchase_order_id == data_id).all()
     result_list = format_purchase_product(data_list=result_tuple_list)
     return {"data": result_list, "count": PurchaseOrderList.query.filter_by(purchase_order_id=data_id).count()}
+
+
+def get_transaction_by_stock_id(data_id):
+    """
+    通过stock id 获取所有的交易信息
+    :param data_id: stock id
+    :return:
+    """
+    result_list = TransactionList.query.filter_by(stock_id=data_id).all()
+    return {"data": result_list, "count": TransactionList.query.filter_by(stock_id=data_id).count()}
 
 
 def del_purchase_order_by_id(data_id):

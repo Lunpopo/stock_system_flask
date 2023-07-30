@@ -15,8 +15,9 @@ purchase_order_bp = Blueprint("purchase_order", __name__, url_prefix="/purchase_
 logger = Logger()
 
 
-@purchase_order_bp.route("/get_purchase_order", methods=["GET"])
-def get_purchase_order():
+# DONE 完成
+@purchase_order_bp.route("/get_stock_list", methods=["GET"])
+def get_stock_list():
     """
     获取入库单列表
     :return:
@@ -29,12 +30,12 @@ def get_purchase_order():
     limit = int(request.args.get("limit"))
 
     params_dict = {"page": page, "limit": limit}
-    logger.info("/get_purchase_order 前端的入参参数：\n{}".format(json.dumps(params_dict, indent=4, ensure_ascii=False)))
+    logger.info("/get_stock_list 前端的入参参数：\n{}".format(json.dumps(params_dict, indent=4, ensure_ascii=False)))
 
     # 前端page从1开始
     page -= 1
     page = page * limit
-    result = order_crud.get_purchase_order_limit(page=page, limit=limit)
+    result = order_crud.get_stock_list_limit(page=page, limit=limit)
     result_data = result.get("data")
     data_list = []
     for _ in result_data:
@@ -42,10 +43,22 @@ def get_purchase_order():
         data_list.append(_dict)
 
     # 增加一个产品采购单的种类
-    for purchase_result_obj in data_list:
-        purchase_business_id = purchase_result_obj['business_id']
-        purchase_list_result = order_crud.get_products_by_purchase_order_id(data_id=purchase_business_id)
-        purchase_result_obj['type'] = purchase_list_result.get("count")
+    for stock_list_obj in data_list:
+        stock_business_id = stock_list_obj['business_id']
+        transaction_result_list = order_crud.get_transaction_by_stock_id(data_id=stock_business_id)
+        transaction_obj_list = transaction_result_list.get("data")
+        stock_list_obj['transaction_count'] = transaction_result_list.get("count")  # 交易次数
+
+        # 计算买入和卖出的总额度
+        buy_price_count = 0.0
+        sell_price_count = 0.0
+        for transaction_obj in transaction_obj_list:
+            if transaction_obj.transaction_type == '买入':
+                buy_price_count += transaction_obj.subtotal_price
+            else:
+                sell_price_count += transaction_obj.subtotal_price
+        stock_list_obj['buy_price_count'] = buy_price_count
+        stock_list_obj['sell_price_count'] = sell_price_count
 
     # 统一转换成时间戳的形式
     data_list = time_to_timestamp(data_list)
@@ -58,6 +71,37 @@ def get_purchase_order():
         "data": data_list
     }
     return restful.ok(message="返回进货单列表数据", data=return_data)
+
+# DONE 完成
+@purchase_order_bp.route("/add_stock_list", methods=["POST"])
+def add_stock_list():
+    """
+    获取入库单列表
+    :return:
+    """
+    auth_status = auth_check(user_token=request.headers.get('Authorization'), api='purchase_order/get_purchase_order')
+    if AuthCheckEnum[auth_status].value is not True:
+        return AuthCheckEnum[auth_status].value
+
+    data = request.get_data(as_text=True)
+    params_dict = json.loads(data)
+    logger.info(
+        "/add_purchase_order 前端传入的参数为：\n{}".format(json.dumps(params_dict, indent=4, ensure_ascii=False))
+    )
+
+    stock_name = params_dict.get("stock_name")
+    stock_code = params_dict.get("stock_code")
+    stock_transaction_list = params_dict.get('stock_transaction_list')
+    remarks = params_dict.get("remarks")
+    stock_list_dict = {
+        "stock_name": stock_name,
+        "stock_code": stock_code,
+        "remarks": remarks
+    }
+
+    order_crud.add_stock_list(stock_list_data=stock_list_dict, stock_transaction_list_data=stock_transaction_list)
+
+    return restful.ok(message="返回进货单列表数据", data=params_dict)
 
 
 @purchase_order_bp.route("/get_purchase_product_details", methods=["GET"])
