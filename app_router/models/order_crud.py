@@ -7,7 +7,7 @@ from app_router.models.base_models import StockList, TransactionList
 from app_router.models.data_models import DealerProductList, ProductList
 from app_router.models.database import db
 from app_router.models.order_models import PurchaseOrder, PurchaseOrderList, OutboundOrder, OutboundOrderList
-from app_router.order_display_bp.order_lib import format_purchase_product, format_outbound_product
+from app_router.stock_display_bp.order_lib import format_purchase_product, format_outbound_product
 from exceptions.order_exception import *
 
 
@@ -483,7 +483,48 @@ def get_stock_list_limit(page: int = 0, limit: int = 100):
     return {"data": result_list, "count": StockList.query.count()}
 
 
+def update_transaction_info(transaction_dict):
+    """
+    更新股票交易信息（一次更新一条）
+    :param transaction_dict:
+    :return:
+    """
+    try:
+        transaction_id = transaction_dict['business_id']
+        with db.session.begin_nested():
+            # 1. 根据业务id查询这条数据
+            transaction_obj = TransactionList.query.filter_by(business_id=transaction_id).first()
+            if transaction_obj:
+                # 执行更新操作
+                TransactionList.query.filter(TransactionList.business_id == transaction_id).update(transaction_dict)
+                db.session.flush()
+            else:
+                raise TransactinoNotExist
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise UpdateTransactinoException
+
+
+def get_transaction_info_by_id(data_id):
+    """
+    通过 transaction_list 表的 business_id 获取股票交易信息
+    :param data_id:
+    :return:
+    """
+    try:
+        return TransactionList.query.filter_by(business_id=data_id).first()
+    except:
+        raise UpdateTransactinoException
+
+
 def update_stock_transaction_list(stock_dict, transaction_dict_list):
+    """
+    更新股票 和 股票交易表
+    :param stock_dict:
+    :param transaction_dict_list:
+    :return:
+    """
     try:
         stock_id = stock_dict['business_id']
         with db.session.begin_nested():
@@ -558,6 +599,26 @@ def add_stock_list(stock_list_data: dict, stock_transaction_list_data: dict):
         raise AddStockListException
 
 
+def del_stock_by_id(data_id):
+    """
+    通过 stock id 删除该股票及其所有的股票交易
+    :param data_id: stock id
+    :return:
+    """
+    try:
+        with db.session.begin_nested():
+            # 1. 先删除该股票下的所有的交易
+            TransactionList.query.filter(TransactionList.stock_id == data_id).delete()
+            db.session.flush()
+            # 2. 再删除该股票
+            StockList.query.filter(StockList.business_id == data_id).delete()
+            db.session.flush()
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise DelStockException
+
+
 def get_stock_info_by_id(data_id):
     """
     通过stock id 获取股票信息
@@ -565,7 +626,7 @@ def get_stock_info_by_id(data_id):
     :return:
     """
     # 该 股票id 的所有交易列表
-    transaction_obj_list = TransactionList.query.filter_by(stock_id=data_id).order_by(TransactionList.update_time.asc()).all()
+    transaction_obj_list = TransactionList.query.filter_by(stock_id=data_id).order_by(TransactionList.create_time.asc()).all()
     stock_obj = StockList.query.filter_by(business_id=data_id).first()
     return {"transaction_obj_list": transaction_obj_list, "stock_obj": stock_obj}
 

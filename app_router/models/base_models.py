@@ -251,8 +251,8 @@ class TransactionList(db.Model):
     remain_positions = db.Column(db.Float, comment="剩余仓位")
     profit_amount = db.Column(db.Float, comment='盈利数额')
     cost = db.Column(db.Float, comment='成本价格')
-    transaction_status = db.Column(db.String(255), comment="交易状态")
-    remarks = db.Column(db.Text, nullable=True, comment="备注")
+    transaction_status = db.Column(db.String(255), nullable=False, comment="交易状态", default="未清仓")
+    remarks = db.Column(db.Text, comment="备注")
 
     # 公共字段
     is_delete = db.Column(db.Integer, default=0, nullable=False,

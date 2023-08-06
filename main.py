@@ -3,10 +3,11 @@ flask启动文件
 """
 from flask_migrate import MigrateCommand
 from flask_script import Manager
+from app_router.models.database import db
 
 from app_router import create_app
 
-app, db = create_app()
+app = create_app()
 
 if __name__ == '__main__':
     manager = Manager(app, db)

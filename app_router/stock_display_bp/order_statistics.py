@@ -4,7 +4,7 @@ from flask import Blueprint, request
 from gkestor_common_logger import Logger
 
 from app_router.models import order_crud
-from app_router.order_display_bp.order_lib import order_stock_data_list, search_stock_product
+from app_router.stock_display_bp.order_lib import order_stock_data_list, search_stock_product
 from enums.enums import AuthCheckEnum
 from utils import restful
 from utils.authentication import auth_check

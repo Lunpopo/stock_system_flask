@@ -10,12 +10,12 @@ from utils import restful
 from utils.authentication import auth_check
 from utils.date_utils import time_to_timestamp
 
-purchase_order_bp = Blueprint("purchase_order", __name__, url_prefix="/purchase_order")
+stock_bp = Blueprint("stock", __name__, url_prefix="/purchase_order")
 logger = Logger()
 
 
 # DONE
-@purchase_order_bp.route("/get_stock_info_by_id", methods=["POST"])
+@stock_bp.route("/get_stock_info_by_id", methods=["POST"])
 def get_stock_info_by_id():
     """
     通过 stock id 获取股票信息
@@ -57,7 +57,7 @@ def get_stock_info_by_id():
 
 
 # DOING
-@purchase_order_bp.route("/get_stock_transaction_by_id", methods=["POST"])
+@stock_bp.route("/get_stock_transaction_by_id", methods=["POST"])
 def get_stock_transaction_by_id():
     """
     通过 stock id 获取股票和详细的交易信息（例如产生的盈利和交易状态）
@@ -78,66 +78,135 @@ def get_stock_transaction_by_id():
         json.dumps(params_dict, indent=4, ensure_ascii=False))
     )
 
+    # 获取该股票的交易列表
+    before_update_result = order_crud.get_stock_info_by_id(data_id=stock_id)  # 未更新数据前的查询结果
+    transaction_obj_list = before_update_result.get("transaction_obj_list")
+    transaction_obj_list = [_.as_dict() for _ in transaction_obj_list]
+
+    def _update_latest_transaction(_stock_id, _obj_list):
+        """
+        更新最新的交易列表状态（比如成本、剩余仓位、盈利数额等等）
+        :param _stock_id:
+        :param _obj_list:
+        :return:
+        """
+        # 保存交易状态不为清仓的情况
+        save_list = []
+        for index, transaction_obj in enumerate(_obj_list):
+            if transaction_obj['transaction_status'] == "未清仓":
+                save_list.append(transaction_obj)
+
+        # 专门处理不为清仓的状态
+        for index, transaction_obj in enumerate(save_list):
+            if index == 0:
+                transaction_dict = {
+                    # 剩余仓位等于第一次买入的数量
+                    "remain_positions": int(transaction_obj['quantity']),
+                    # 成本也等于第一次买入的价格
+                    "cost": transaction_obj['buy_price'],
+                    "business_id": transaction_obj['business_id']
+                }
+                order_crud.update_transaction_info(transaction_dict=transaction_dict)
+                continue
+
+            # 不为首个买入的状态
+            if transaction_obj['transaction_type'] == '买入':
+                # 此次买入的价格
+                current_buy_price = transaction_obj['buy_price']
+                # 此次买入的数量
+                current_buy_quantity = int(transaction_obj['quantity'])
+                # 获取上一条交易的成本价格
+                # 上一条数据的业务id
+                previous_obj_id = save_list[index - 1]['business_id']
+                previous_obj = order_crud.get_transaction_info_by_id(data_id=previous_obj_id)
+                previous_buy_price = previous_obj.cost
+                # 上一条交易的剩余仓位
+                previous_remain_quantity = int(previous_obj.remain_positions)
+
+                # 计算此次的买入成本：(当前买入价格 x 当前买入的数量 + 上一条计算好的成本价格 * 上一条计算好的剩余仓位) / (当前买入的数量 + 上一条计算好的剩余数量)
+                current_buy_cost = (current_buy_price*current_buy_quantity + previous_buy_price*previous_remain_quantity) /\
+                                   (current_buy_quantity + previous_remain_quantity)
+                # 计算此次的剩余数量（当前买入的数量 + 上一条计算好的剩余数量）
+                current_remain_quantity = int(current_buy_quantity + previous_remain_quantity)
+
+                # 更新数据库
+                transaction_dict = {
+                    # 剩余仓位等于第一次买入的数量
+                    "remain_positions": current_remain_quantity,
+                    # 成本也等于第一次买入的价格
+                    "cost": current_buy_cost,
+                    "business_id": transaction_obj['business_id']
+                }
+                order_crud.update_transaction_info(transaction_dict=transaction_dict)
+            else:
+                # 此次卖出的价格
+                current_sell_price = transaction_obj['sell_price']
+                # 此次卖出的股票数量
+                current_sell_quantity = int(transaction_obj['quantity'])
+
+                # 上一条交易的成本价格（此时成本还是为上一条的成本价，因为没有买入的操作，那么成本就不会更改）
+                previous_obj_id = save_list[index - 1]['business_id']
+                previous_obj = order_crud.get_transaction_info_by_id(data_id=previous_obj_id)
+                previous_cost_price = previous_obj.cost
+                # 上一条交易的剩余仓位
+                previous_remain_quantity = int(previous_obj.remain_positions)
+
+                # 计算此次的盈利：(此次卖出的价格 - 上一条交易的成本价) * 卖出数量
+                current_profit_amount = (current_sell_price - previous_cost_price) * current_sell_quantity
+                # 计算此次的剩余数量（上一条剩余仓位的数量 - 当前卖出的数量）
+                current_remain_quantity = int(previous_remain_quantity - current_sell_quantity)
+
+                # 更新数据库
+                transaction_dict = {
+                    "remain_positions": current_remain_quantity,
+                    "cost": previous_cost_price,
+                    # 盈利的数目
+                    "profit_amount": current_profit_amount,
+                    "business_id": transaction_obj['business_id']
+                }
+                order_crud.update_transaction_info(transaction_dict=transaction_dict)
+
+                if int(current_remain_quantity) == 0:
+                    # 直接清仓（要加个循环，直到当前索引进行清仓操作）
+                    for _index in range(index+1):
+                        # 更新数据库
+                        transaction_dict = {
+                            "transaction_status": '已清仓',
+                            "business_id": save_list[_index]['business_id']
+                        }
+                        order_crud.update_transaction_info(transaction_dict=transaction_dict)
+
+                    # 清仓完之后需要再次进行迭代
+                    _result = order_crud.get_stock_info_by_id(data_id=_stock_id)  # 未更新数据前的查询结果
+                    _transaction_obj_list = _result.get("transaction_obj_list")
+                    _transaction_obj_list = [_.as_dict() for _ in _transaction_obj_list]
+                    _update_latest_transaction(_stock_id=_stock_id, _obj_list=_transaction_obj_list)
+
+    _update_latest_transaction(_stock_id=stock_id, _obj_list=transaction_obj_list)
+
     # 获取股票信息
     result = order_crud.get_stock_info_by_id(data_id=stock_id)
-    # 该入库订单下的所有产品
-    stock_obj = result.get("stock_obj")
-    stock_obj = stock_obj.as_dict()
-    stock_obj = time_to_timestamp([stock_obj])[0]
-
     # 该股票的交易列表
     transaction_obj_list = result.get("transaction_obj_list")
     transaction_obj_list = [_.as_dict() for _ in transaction_obj_list]
-    transaction_obj_list = time_to_timestamp(transaction_obj_list)
-
-    # 保存交易状态不为清仓的情况
-    save_list = []
-    for index, transaction_obj in enumerate(transaction_obj_list):
-        transaction_obj['stock_name'] = stock_obj['stock_name']
-        if not transaction_obj['transaction_status']:
-            save_list.append(transaction_obj)
-
-    # 专门处理不为清仓的状态
-    for index, transaction_obj in enumerate(save_list):
-        if index == 0:
-            transaction_obj['remain_positions'] = transaction_obj['quantity']
-            transaction_obj['cost'] = transaction_obj['buy_price']
-            break
-
-        # 不为首个买入的状态
-        if transaction_obj['transaction_type'] == '买入':
-            # 此次买入的价格
-            current_buy_price = transaction_obj['buy_price']
-            # 此次买入的数量
-            current_buy_quantity = transaction_obj['quantity']
-            # 上一条交易的成本价格
-            previous_buy_price = save_list[index - 1]['cost']
-            # 上一条交易的剩余仓位
-            previous_remain_quantity = save_list[index - 1]['remain_positions']
-
-            # 计算此次的买入成本：(当前买入价格 x 当前买入的数量 + 上一条计算好的成本价格 * 上一条计算好的剩余仓位) / (当前买入的数量 + 上一条计算好的剩余数量)
-            current_buy_cost = (
-                                           current_buy_price * current_buy_quantity + previous_buy_price * previous_remain_quantity) / (
-                                           current_buy_quantity + previous_remain_quantity)
-            # 计算此次的剩余数量（当前买入的数量 + 上一条计算好的剩余数量）
-            current_remain_quantity = current_buy_quantity + previous_remain_quantity
+    final_return_obj_list = time_to_timestamp(transaction_obj_list)
 
     return_data = {
         "Success": True,
         "code": 2000,
         "msg": "",
         "count": result.get('count'),
-        "data": transaction_obj_list
+        "data": final_return_obj_list
     }
 
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
 # DONE 完成
-@purchase_order_bp.route("/get_stock_list", methods=["GET"])
+@stock_bp.route("/get_stock_list", methods=["GET"])
 def get_stock_list():
     """
-    获取入库单列表
+    获取所有的股票卡片列表
     :return:
     """
     auth_status = auth_check(user_token=request.headers.get('Authorization'), api='purchase_order/get_purchase_order')
@@ -192,10 +261,10 @@ def get_stock_list():
 
 
 # DONE 完成
-@purchase_order_bp.route("/add_stock_list", methods=["POST"])
+@stock_bp.route("/add_stock_list", methods=["POST"])
 def add_stock_list():
     """
-    获取入库单列表
+    添加股票列表
     :return:
     """
     auth_status = auth_check(user_token=request.headers.get('Authorization'), api='purchase_order/get_purchase_order')
@@ -224,7 +293,7 @@ def add_stock_list():
 
 
 # DONE 完成
-@purchase_order_bp.route("/update_stock_list", methods=["POST"])
+@stock_bp.route("/update_stock_list", methods=["POST"])
 def update_stock_list():
     """
     更新股票列表和该股票的交易列表
@@ -259,10 +328,10 @@ def update_stock_list():
     return restful.server_error(message=update_purchase_order_not_zero)
 
 
-@purchase_order_bp.route("/del_purchase_order", methods=["POST"])
-def del_purchase_order():
+@stock_bp.route("/del_stock", methods=["POST"])
+def del_stock():
     """
-    根据 订单ID 删除一条入库单
+    根据 stock ID 删除该股票和与之相关的股票交易信息
     :return:
     """
     auth_status = auth_check(user_token=request.headers.get('Authorization'), api='purchase_order/del_purchase_order')
@@ -271,12 +340,12 @@ def del_purchase_order():
 
     data = request.get_data(as_text=True)
     params_dict = json.loads(data)
-    logger.info("/del_purchase_order 前端传入的参数为：\n{}".format(json.dumps(params_dict, indent=4, ensure_ascii=False)))
+    logger.info("/del_stock 前端传入的参数为：\n{}".format(json.dumps(params_dict, indent=4, ensure_ascii=False)))
 
-    business_id = params_dict.get("purchase_order_id")
+    business_id = params_dict.get("stock_id")
     try:
-        order_crud.del_purchase_order_by_id(data_id=business_id)
+        order_crud.del_stock_by_id(data_id=business_id)
     except:
-        return restful.server_error(message=del_purchase_order_failed)
+        return restful.server_error(message=del_stock_failed)
 
-    return restful.ok(message=del_purchase_order_success)
+    return restful.ok(message=del_stock_success)

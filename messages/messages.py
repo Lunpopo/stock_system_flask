@@ -33,6 +33,9 @@ add_purchase_order_failed = "新增入库单失败！"
 
 add_stock_list_failed = "新增股票交易信息列表失败！"
 
+del_stock_failed = "删除股票及其交易信息失败！"
+del_stock_success = "删除股票及其交易信息成功！"
+
 del_purchase_order_success = "删除入库单成功！"
 del_purchase_order_failed = "删除入库单失败！"
 add_purchase_order_product_success = "新增入库单产品成功！"
@@ -43,6 +46,8 @@ add_outbound_order_product_failed = "新增出库单产品失败！"
 update_outbound_order_failed = "更新出库单异常！"
 update_purchase_order_failed = "更新入库单异常！"
 update_stock_list_failed = "更新股票列表异常！"
+update_transaction_info_failed = "更新股票交易信息异常！"
+transaction_info_not_exist = "该条股票交易信息不存在！"
 
 del_purchase_product_list_order_failed = "删除入库单所有的产品失败！"
 del_transaction_failed = "删除股票交易列表失败！"
