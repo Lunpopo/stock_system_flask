@@ -1,5 +1,4 @@
 import time
-import traceback
 
 from sqlalchemy import func, desc
 from sqlalchemy.orm import aliased
@@ -8,8 +7,7 @@ from app_router.models.base_models import StockList, TransactionList
 from app_router.models.data_models import DealerProductList, ProductList
 from app_router.models.database import db
 from app_router.models.order_models import PurchaseOrder, PurchaseOrderList, OutboundOrder, OutboundOrderList
-from app_router.order_display_bp.order_lib import format_purchase_product, format_outbound_product, \
-    format_stock_transaction_list
+from app_router.order_display_bp.order_lib import format_purchase_product, format_outbound_product
 from exceptions.order_exception import *
 
 
@@ -539,11 +537,17 @@ def add_stock_list(stock_list_data: dict, stock_transaction_list_data: dict):
             db.session.flush()
             stock_id = stock_list_obj.business_id
             for _ in stock_transaction_list_data:
+                _['stock_id'] = stock_id
+                # create_time
+                create_time = int(int(_['create_time']) / 1000)
+                create_time_array = time.localtime(create_time)
+                create_time = time.strftime("%Y-%m-%d %H:%M:%S", create_time_array)
+                _['create_time'] = create_time
+                # update_time
                 update_time = int(int(_['update_time']) / 1000)
                 update_time_array = time.localtime(update_time)
                 update_time = time.strftime("%Y-%m-%d %H:%M:%S", update_time_array)
                 _['update_time'] = update_time
-                _['stock_id'] = stock_id
 
             stock_transaction_objs = [TransactionList(**_) for _ in stock_transaction_list_data]
             db.session.add_all(stock_transaction_objs)

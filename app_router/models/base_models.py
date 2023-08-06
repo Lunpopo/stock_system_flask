@@ -240,19 +240,18 @@ class TransactionList(db.Model):
                    comment="哈希自动生成id")
     stock_id = db.Column(db.String(255), nullable=False, comment="stock_list表的business_id")
     transaction_type = db.Column(db.String(255), nullable=False, comment="交易类型（买入或者卖出）")
-    buy_price = db.Column(db.Float, nullable=False, comment="买入价格")
-    sell_price = db.Column(db.Float, nullable=False, comment="卖出价格")
+    buy_price = db.Column(db.Float, comment="买入价格")
+    sell_price = db.Column(db.Float, comment="卖出价格")
     quantity = db.Column(db.Integer, nullable=False, comment="数量")
-    subtotal_price = db.Column(db.Float, nullable=False, comment='小计价格')
-    # profit_amount = db.Column(db.Float, nullable=False, comment='盈利数额')
-    sell_gear_one = db.Column(db.Float, nullable=False, comment="卖出档位1（10%）")
-    sell_gear_two = db.Column(db.Float, nullable=False, comment="卖出档位2（20%）")
-    markup_price = db.Column(db.Float, nullable=False, comment="加仓价格")
-    heavy_price = db.Column(db.Float, nullable=False, comment="重仓价格")
-    # transaction_time = db.Column(
-    #     db.TIMESTAMP, nullable=False, server_default=db.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
-    #     comment="交易时间"
-    # )
+    subtotal_price = db.Column(db.Float, comment='小计价格')
+    sell_gear_one = db.Column(db.Float, comment="卖出档位1（10%）")
+    sell_gear_two = db.Column(db.Float, comment="卖出档位2（20%）")
+    markup_price = db.Column(db.Float, comment="加仓价格")
+    heavy_price = db.Column(db.Float, comment="重仓价格")
+    remain_positions = db.Column(db.Float, comment="剩余仓位")
+    profit_amount = db.Column(db.Float, comment='盈利数额')
+    cost = db.Column(db.Float, comment='成本价格')
+    transaction_status = db.Column(db.String(255), comment="交易状态")
     remarks = db.Column(db.Text, nullable=True, comment="备注")
 
     # 公共字段

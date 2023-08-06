@@ -1,11 +1,9 @@
 import json
-import time
 
 from flask import Blueprint, request
 from gkestor_common_logger import Logger
 
-from app_router.models import order_crud, crud
-from app_router.order_display_bp.order_lib import format_stock_transaction_list
+from app_router.models import order_crud
 from enums.enums import AuthCheckEnum
 from messages.messages import *
 from utils import restful
@@ -55,6 +53,83 @@ def get_stock_info_by_id():
         "stock_obj": stock_obj,
         "transaction_obj_list": transaction_obj_list
     }
+    return restful.ok(message="返回产品列表数据", data=return_data)
+
+
+# DOING
+@purchase_order_bp.route("/get_stock_transaction_by_id", methods=["POST"])
+def get_stock_transaction_by_id():
+    """
+    通过 stock id 获取股票和详细的交易信息（例如产生的盈利和交易状态）
+    :return:
+    """
+    auth_status = auth_check(user_token=request.headers.get('Authorization'),
+                             api='purchase_order/get_purchase_product_details')
+    if AuthCheckEnum[auth_status].value is not True:
+        return AuthCheckEnum[auth_status].value
+
+    data = request.get_data(as_text=True)
+    params_dict = json.loads(data)
+    # 入库订单ID
+    stock_id = params_dict.get("stock_id")
+
+    params_dict = {"stock_id": stock_id}
+    logger.info("/get_purchase_product_details 前端的入参参数：\n{}".format(
+        json.dumps(params_dict, indent=4, ensure_ascii=False))
+    )
+
+    # 获取股票信息
+    result = order_crud.get_stock_info_by_id(data_id=stock_id)
+    # 该入库订单下的所有产品
+    stock_obj = result.get("stock_obj")
+    stock_obj = stock_obj.as_dict()
+    stock_obj = time_to_timestamp([stock_obj])[0]
+
+    # 该股票的交易列表
+    transaction_obj_list = result.get("transaction_obj_list")
+    transaction_obj_list = [_.as_dict() for _ in transaction_obj_list]
+    transaction_obj_list = time_to_timestamp(transaction_obj_list)
+
+    # 保存交易状态不为清仓的情况
+    save_list = []
+    for index, transaction_obj in enumerate(transaction_obj_list):
+        transaction_obj['stock_name'] = stock_obj['stock_name']
+        if not transaction_obj['transaction_status']:
+            save_list.append(transaction_obj)
+
+    # 专门处理不为清仓的状态
+    for index, transaction_obj in enumerate(save_list):
+        if index == 0:
+            transaction_obj['remain_positions'] = transaction_obj['quantity']
+            transaction_obj['cost'] = transaction_obj['buy_price']
+            break
+
+        # 不为首个买入的状态
+        if transaction_obj['transaction_type'] == '买入':
+            # 此次买入的价格
+            current_buy_price = transaction_obj['buy_price']
+            # 此次买入的数量
+            current_buy_quantity = transaction_obj['quantity']
+            # 上一条交易的成本价格
+            previous_buy_price = save_list[index - 1]['cost']
+            # 上一条交易的剩余仓位
+            previous_remain_quantity = save_list[index - 1]['remain_positions']
+
+            # 计算此次的买入成本：(当前买入价格 x 当前买入的数量 + 上一条计算好的成本价格 * 上一条计算好的剩余仓位) / (当前买入的数量 + 上一条计算好的剩余数量)
+            current_buy_cost = (
+                                           current_buy_price * current_buy_quantity + previous_buy_price * previous_remain_quantity) / (
+                                           current_buy_quantity + previous_remain_quantity)
+            # 计算此次的剩余数量（当前买入的数量 + 上一条计算好的剩余数量）
+            current_remain_quantity = current_buy_quantity + previous_remain_quantity
+
+    return_data = {
+        "Success": True,
+        "code": 2000,
+        "msg": "",
+        "count": result.get('count'),
+        "data": transaction_obj_list
+    }
+
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
