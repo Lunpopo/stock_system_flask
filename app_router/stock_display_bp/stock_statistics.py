@@ -9,11 +9,11 @@ from enums.enums import AuthCheckEnum
 from utils import restful
 from utils.authentication import auth_check
 
-order_statistics_bp = Blueprint("order_statistics", __name__, url_prefix="/order_statistics")
+stock_statistics_bp = Blueprint("stock_statistics", __name__, url_prefix="/order_statistics")
 logger = Logger()
 
 
-@order_statistics_bp.route("/get_transaction_list", methods=["GET"])
+@stock_statistics_bp.route("/get_transaction_list", methods=["GET"])
 def get_transaction_list():
     """
     获取交易信息列表（前10的经销商数据）
@@ -48,7 +48,7 @@ def get_transaction_list():
     return restful.ok(message="获取交易信息成功！", data=data)
 
 
-@order_statistics_bp.route("/get_product_transaction_list", methods=["GET"])
+@stock_statistics_bp.route("/get_product_transaction_list", methods=["GET"])
 def get_product_transaction_list():
     """
     获取产品交易信息列表（从销量最高的产品往下排列）
@@ -67,7 +67,7 @@ def get_product_transaction_list():
     return restful.ok(message="获取产品交易信息列表成功！", data=data)
 
 
-@order_statistics_bp.route("/get_stock_all_data", methods=["GET"])
+@stock_statistics_bp.route("/get_stock_all_data", methods=["GET"])
 def get_stock_all_data():
     """
     获取总库存数据信息-用于下载
@@ -100,7 +100,7 @@ def get_stock_all_data():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-@order_statistics_bp.route("/get_outbound_stock_data_list", methods=["GET"])
+@stock_statistics_bp.route("/get_outbound_stock_data_list", methods=["GET"])
 def get_outbound_stock_data_list():
     """
     获取出库数据信息
@@ -145,7 +145,7 @@ def get_outbound_stock_data_list():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-@order_statistics_bp.route("/get_stock_data_list", methods=["GET"])
+@stock_statistics_bp.route("/get_stock_data_list", methods=["GET"])
 def get_stock_data_list():
     """
     获取总库存数据信息（表格展示信息）
@@ -187,7 +187,7 @@ def get_stock_data_list():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-@order_statistics_bp.route("/get_outbound_pie_statistics", methods=["GET"])
+@stock_statistics_bp.route("/get_outbound_pie_statistics", methods=["GET"])
 def get_outbound_pie_statistics():
     """
     获取各个经销商的出库单的金额统计饼图信息
@@ -219,7 +219,7 @@ def get_outbound_pie_statistics():
     )
 
 
-@order_statistics_bp.route("/get_outbound_bar_statistics", methods=["GET"])
+@stock_statistics_bp.route("/get_outbound_bar_statistics", methods=["GET"])
 def get_outbound_bar_statistics():
     """
     获取各个经销商的出库单的金额统计 柱状图 信息
@@ -233,7 +233,7 @@ def get_outbound_bar_statistics():
     return restful.ok(message="获取各个经销商出库金额统计信息成功！", data=result_data)
 
 
-@order_statistics_bp.route("/get_outbound_price_statistics", methods=["GET"])
+@stock_statistics_bp.route("/get_outbound_price_statistics", methods=["GET"])
 def get_outbound_price_statistics():
     """
     获取出库单的金额统计信息
@@ -265,7 +265,7 @@ def get_outbound_price_statistics():
     return restful.ok(message="获取出库单金额统计信息成功！", data=data)
 
 
-@order_statistics_bp.route("/get_outbound_piece_statistics", methods=["GET"])
+@stock_statistics_bp.route("/get_outbound_piece_statistics", methods=["GET"])
 def get_outbound_piece_statistics():
     """
     获取出库单的数量统计信息
@@ -298,7 +298,7 @@ def get_outbound_piece_statistics():
     return restful.ok(message="获取出库单数量统计信息成功！", data=data)
 
 
-@order_statistics_bp.route("/get_total_outbound_price_and_piece", methods=["GET"])
+@stock_statistics_bp.route("/get_total_outbound_price_and_piece", methods=["GET"])
 def get_total_outbound_price_and_piece():
     """
     获取出库单的总金额和总数量
@@ -318,7 +318,7 @@ def get_total_outbound_price_and_piece():
     return restful.ok(message="获取出库单总金额成功！", data=data)
 
 
-@order_statistics_bp.route("/get_outbound_stock_all_data", methods=["GET"])
+@stock_statistics_bp.route("/get_outbound_stock_all_data", methods=["GET"])
 def get_outbound_stock_all_data():
     """
     获取出库数据信息-用于下载
@@ -355,7 +355,7 @@ def get_outbound_stock_all_data():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-@order_statistics_bp.route("/get_purchase_stock_all_data", methods=["GET"])
+@stock_statistics_bp.route("/get_purchase_stock_all_data", methods=["GET"])
 def get_purchase_stock_all_data():
     """
     获取入库数据信息-用于下载
@@ -392,7 +392,7 @@ def get_purchase_stock_all_data():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-@order_statistics_bp.route("/get_purchase_stock_data_list", methods=["GET"])
+@stock_statistics_bp.route("/get_purchase_stock_data_list", methods=["GET"])
 def get_purchase_stock_data_list():
     """
     获取入库数据信息
@@ -436,7 +436,7 @@ def get_purchase_stock_data_list():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-@order_statistics_bp.route("/get_purchase_price_statistics", methods=["GET"])
+@stock_statistics_bp.route("/get_purchase_price_statistics", methods=["GET"])
 def get_purchase_price_statistics():
     """
     获取入库单的金额统计信息
@@ -468,7 +468,7 @@ def get_purchase_price_statistics():
     return restful.ok(message="获取入库单金额统计信息成功！", data=data)
 
 
-@order_statistics_bp.route("/get_purchase_piece_statistics", methods=["GET"])
+@stock_statistics_bp.route("/get_purchase_piece_statistics", methods=["GET"])
 def get_purchase_piece_statistics():
     """
     获取入库单的数量统计信息
@@ -500,7 +500,7 @@ def get_purchase_piece_statistics():
     return restful.ok(message="获取入库单数量统计信息成功！", data=data)
 
 
-@order_statistics_bp.route("/get_total_purchase_price_and_piece", methods=["GET"])
+@stock_statistics_bp.route("/get_total_purchase_price_and_piece", methods=["GET"])
 def get_total_purchase_price_and_piece():
     """
     获取入库单的总金额和总数量

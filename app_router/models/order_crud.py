@@ -3,7 +3,7 @@ import time
 from sqlalchemy import func, desc
 from sqlalchemy.orm import aliased
 
-from app_router.models.base_models import StockList, TransactionList
+from app_router.models.stock_models import StockList, TransactionList
 from app_router.models.data_models import DealerProductList, ProductList
 from app_router.models.database import db
 from app_router.models.order_models import PurchaseOrder, PurchaseOrderList, OutboundOrder, OutboundOrderList
@@ -651,8 +651,19 @@ def get_transaction_by_stock_id(data_id):
     :param data_id: stock id
     :return:
     """
-    result_list = TransactionList.query.filter_by(stock_id=data_id).order_by(TransactionList.update_time.asc()).all()
+    result_list = TransactionList.query.filter_by(stock_id=data_id).order_by(TransactionList.create_time.asc()).all()
     return {"data": result_list, "count": TransactionList.query.filter_by(stock_id=data_id).count()}
+
+
+def get_unclear_transaction_by_stock_id(data_id):
+    """
+    通过stock id 获取该股票未清仓的交易信息
+    :param data_id: stock id
+    :return:
+    """
+    result_list = TransactionList.query.filter_by(stock_id=data_id, transaction_status='未清仓').order_by(
+        TransactionList.create_time.asc()).all()
+    return result_list
 
 
 def del_purchase_order_by_id(data_id):

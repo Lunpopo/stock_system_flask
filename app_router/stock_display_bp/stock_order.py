@@ -14,7 +14,6 @@ stock_bp = Blueprint("stock", __name__, url_prefix="/purchase_order")
 logger = Logger()
 
 
-# DONE
 @stock_bp.route("/get_stock_info_by_id", methods=["POST"])
 def get_stock_info_by_id():
     """
@@ -56,7 +55,6 @@ def get_stock_info_by_id():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-# DOING
 @stock_bp.route("/get_stock_transaction_by_id", methods=["POST"])
 def get_stock_transaction_by_id():
     """
@@ -124,7 +122,8 @@ def get_stock_transaction_by_id():
                 previous_remain_quantity = int(previous_obj.remain_positions)
 
                 # 计算此次的买入成本：(当前买入价格 x 当前买入的数量 + 上一条计算好的成本价格 * 上一条计算好的剩余仓位) / (当前买入的数量 + 上一条计算好的剩余数量)
-                current_buy_cost = (current_buy_price*current_buy_quantity + previous_buy_price*previous_remain_quantity) /\
+                current_buy_cost = (
+                                               current_buy_price * current_buy_quantity + previous_buy_price * previous_remain_quantity) / \
                                    (current_buy_quantity + previous_remain_quantity)
                 # 计算此次的剩余数量（当前买入的数量 + 上一条计算好的剩余数量）
                 current_remain_quantity = int(current_buy_quantity + previous_remain_quantity)
@@ -168,7 +167,7 @@ def get_stock_transaction_by_id():
 
                 if int(current_remain_quantity) == 0:
                     # 直接清仓（要加个循环，直到当前索引进行清仓操作）
-                    for _index in range(index+1):
+                    for _index in range(index + 1):
                         # 更新数据库
                         transaction_dict = {
                             "transaction_status": '已清仓',
@@ -202,7 +201,6 @@ def get_stock_transaction_by_id():
     return restful.ok(message="返回产品列表数据", data=return_data)
 
 
-# DONE 完成
 @stock_bp.route("/get_stock_list", methods=["GET"])
 def get_stock_list():
     """
@@ -234,19 +232,32 @@ def get_stock_list():
         stock_business_id = stock_list_obj['business_id']
         transaction_result_list = order_crud.get_transaction_by_stock_id(data_id=stock_business_id)
         transaction_obj_list = transaction_result_list.get("data")
-        stock_list_obj['transaction_count'] = transaction_result_list.get("count")  # 交易次数
 
-        # 计算买入和卖出的总额度
-        buy_price_count = 0.0
-        sell_price_count = 0.0
+        # 总交易次数
+        stock_list_obj['transaction_count'] = transaction_result_list.get("count")
+
+        # 总盈利额
+        total_profit_amount = 0.0
         for transaction_obj in transaction_obj_list:
-            if transaction_obj.transaction_type == '买入':
-                buy_price_count += transaction_obj.subtotal_price
-            else:
-                sell_price_count += transaction_obj.subtotal_price
-        stock_list_obj['buy_price_count'] = buy_price_count
-        stock_list_obj['sell_price_count'] = sell_price_count
+            if transaction_obj.profit_amount:
+                total_profit_amount += float(transaction_obj.profit_amount)
+        stock_list_obj['total_profit_amount'] = "{:.2f}".format(total_profit_amount)
 
+        # 获取最新的成本价 和 当前股票的状态（是否已清仓）
+        # 查找所有的交易信息（只包含未清仓的信息）
+        unclear_transaction_result_list = order_crud.get_unclear_transaction_by_stock_id(data_id=stock_business_id)
+        if unclear_transaction_result_list:
+            stock_list_obj['is_cleared'] = '未清仓'
+            # 得到最新的成本价
+            if unclear_transaction_result_list[-1].cost:
+                stock_list_obj['latest_cost'] = "{:.2f}".format(unclear_transaction_result_list[-1].cost)
+            else:
+                stock_list_obj['latest_cost'] = 0.00
+        else:
+            stock_list_obj['is_cleared'] = '已清仓'
+            stock_list_obj['latest_cost'] = 0.00
+
+    data_list.sort(key=lambda x: x['is_cleared'] == '已清仓')  # 排个序
     # 统一转换成时间戳的形式
     data_list = time_to_timestamp(data_list)
 
@@ -260,7 +271,6 @@ def get_stock_list():
     return restful.ok(message="返回进货单列表数据", data=return_data)
 
 
-# DONE 完成
 @stock_bp.route("/add_stock_list", methods=["POST"])
 def add_stock_list():
     """
@@ -274,7 +284,7 @@ def add_stock_list():
     data = request.get_data(as_text=True)
     params_dict = json.loads(data)
     logger.info(
-        "/add_purchase_order 前端传入的参数为：\n{}".format(json.dumps(params_dict, indent=4, ensure_ascii=False))
+        "/add_stock_list 前端传入的参数为：\n{}".format(json.dumps(params_dict, indent=4, ensure_ascii=False))
     )
 
     stock_name = params_dict.get("stock_name")
@@ -292,7 +302,6 @@ def add_stock_list():
     return restful.ok(message="返回进货单列表数据", data=params_dict)
 
 
-# DONE 完成
 @stock_bp.route("/update_stock_list", methods=["POST"])
 def update_stock_list():
     """
