@@ -1,69 +1,16 @@
-# [product]
-add_product_success = "新增产品成功！"
-add_product_failed = "新增产品失败！"
-add_dealer_name_success = "新增一个经销商成功！"
-add_dealer_product_success = "新增经销商产品成功！"
-add_dealer_product_failed = "新增经销商产品失败！"
-add_dealer_name_failed = "新增一个经销商失败！"
-update_product_success = "更新产品成功！"
-update_product_failed = "更新产品失败！"
-update_dealer_product_success = "更新经销商产品成功！"
-update_dealer_product_failed = "更新经销商产品失败！"
-update_dealer_name_success = "更新经销商名单列表成功！"
-update_dealer_name_failed = "更新经销商名单列表失败！"
-multiply_delete_product_success = "批量删除产品成功！"
-multiply_delete_product_failed = "批量删除产品失败！"
-multiply_delete_dealer_product_success = "批量删除经销商产品成功！"
-multiply_delete_dealer_product_failed = "批量删除经销商产品失败！"
-delete_dealer_name_success = "删除经销商成功！"
-delete_dealer_name_failed = "删除经销商失败！"
-delete_product_success = "删除产品成功！"
-delete_product_failed = "删除产品失败！"
-delete_dealer_product_success = "删除经销商产品成功！"
-delete_dealer_product_failed = "删除经销商产品失败！"
-get_scent_type_success = "查询香型列表成功！"
-get_scent_type_failed = "查询香型列表失败！"
-
-
-# [order]
-add_purchase_order_success = "新增入库单成功！"
+# [stock]
 update_stock_transaction_success = "更新股票和股票交易信息成功！"
 update_stock_transaction_failed = "更新股票和股票交易信息失败！"
-add_purchase_order_failed = "新增入库单失败！"
-
 add_stock_list_failed = "新增股票交易信息列表失败！"
-
 del_stock_failed = "删除股票及其交易信息失败！"
 del_stock_success = "删除股票及其交易信息成功！"
-
-del_purchase_order_success = "删除入库单成功！"
-del_purchase_order_failed = "删除入库单失败！"
-add_purchase_order_product_success = "新增入库单产品成功！"
-add_purchase_order_product_failed = "新增入库单产品失败！"
-update_outbound_order_success = '更新出库单成功！'
-add_outbound_order_product_success = "新增出库单产品成功！"
-add_outbound_order_product_failed = "新增出库单产品失败！"
-update_outbound_order_failed = "更新出库单异常！"
-update_purchase_order_failed = "更新入库单异常！"
 update_stock_list_failed = "更新股票列表异常！"
 update_transaction_info_failed = "更新股票交易信息异常！"
 transaction_info_not_exist = "该条股票交易信息不存在！"
-
-del_purchase_product_list_order_failed = "删除入库单所有的产品失败！"
 del_transaction_failed = "删除股票交易列表失败！"
 del_outbound_product_list_order_failed = "删除出库单所有的产品失败！"
 add_stock_list_not_zero = "新增股票交易列表数量不能为0！"
-# add_purchase_order_not_zero = "新增入库单产品数量不能为0！"
 update_purchase_order_not_zero = "更新入库单产品数量不能为0！"
-
-add_outbound_order_success = "新增出库单成功！"
-add_outbound_order_failed = "新增出库单失败！"
-add_outbound_order_not_zero = "新增出库单产品数量不能为0！"
-update_outbound_order_not_zero = "更新出库单产品数量不能为0！"
-
-del_outbound_order_success = "删除出库单成功！"
-del_outbound_order_failed = "删除出库单失败！"
-
 
 # [user]
 user_exist = "用户已存在！"

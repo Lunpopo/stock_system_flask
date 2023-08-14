@@ -4,13 +4,10 @@ flask初始化
 from flask import Flask
 from flask_cors import CORS
 
-from app_router.data_display_bp.data_display import data_bp
 from app_router.models import user_crud
-from app_router.models.data_models import DealerList
 from app_router.models.database import db
+from app_router.stock_display_bp.stock_bp import stock_bp
 from app_router.stock_display_bp.stock_statistics import stock_statistics_bp
-from app_router.stock_display_bp.outbound_order import outbound_order_bp
-from app_router.stock_display_bp.stock_order import stock_bp
 from app_router.user_manager_bp.user_lib import get_current_ip
 from app_router.user_manager_bp.user_manage import user_bp
 from configs import flask_config
@@ -21,7 +18,6 @@ def init_db_data():
     """
     初始化数据库数据
     """
-    from app_router.models import crud
 
     # 添加管理员用户组
     group_name_list = [
@@ -73,10 +69,8 @@ def create_app():
     CORS(app, supports_credentials=True)
     app.config.from_object(flask_config)
     # 注册蓝图
-    app.register_blueprint(data_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(stock_statistics_bp)
     app.register_blueprint(stock_bp)
-    app.register_blueprint(outbound_order_bp)
     db.init_app(app=app)
     return app
