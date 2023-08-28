@@ -25,7 +25,8 @@ def get_stock_list_limit(page: int = 0, limit: int = 100):
     :param limit: 每页多少条数据
     :return:
     """
-    result_list = StockList.query.order_by(StockList.create_time.desc()).offset(page).limit(limit).all()
+    # 从大到小排列
+    result_list = StockList.query.order_by(StockList.update_time.desc()).offset(page).limit(limit).all()
     return {"data": result_list, "count": StockList.query.count()}
 
 
